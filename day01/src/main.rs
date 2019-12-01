@@ -1,4 +1,5 @@
-use std::fs;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Error};
 
 fn fuel_required(mass: u32) -> u32 {
     let fuel = mass / 3 - 2;
@@ -30,13 +31,20 @@ mod tests {
     }
 }
 
-fn main() -> Result<(), std::io::Error> {
-    let fuel: u32 = fs::read_to_string("test_data/input.txt")?
-        .lines()
-        .map(|mass| {
-            let mass: u32 = mass.parse().unwrap();
+fn main() -> Result<(), Error> {
+    let file = File::open("test_data/input.txt")?;
+    let reader = BufReader::new(file);
 
-            fuel_required(mass)
+    let fuel: u32 = reader
+        .lines()
+        .map(|line| {
+            if let Ok(value) = line {
+                let mass: u32 = value.parse().unwrap();
+
+                fuel_required(mass)
+            } else {
+                0
+            }
         })
         .sum();
 
