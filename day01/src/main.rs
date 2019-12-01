@@ -1,12 +1,12 @@
 use std::fs;
 
-fn fuel_required(mass: i32) -> i32 {
+fn fuel_required(mass: u32) -> u32 {
     let fuel = mass / 3 - 2;
 
-    if fuel > 0 {
+    if fuel > 5 {
         fuel + fuel_required(fuel)
     } else {
-        0
+        fuel
     }
 }
 
@@ -31,10 +31,10 @@ mod tests {
 }
 
 fn main() -> Result<(), std::io::Error> {
-    let fuel: i32 = fs::read_to_string("test_data/input.txt")?
+    let fuel: u32 = fs::read_to_string("test_data/input.txt")?
         .lines()
         .map(|mass| {
-            let mass: i32 = mass.parse().unwrap();
+            let mass: u32 = mass.parse().unwrap();
 
             fuel_required(mass)
         })
