@@ -1,4 +1,5 @@
 use std::convert::TryFrom;
+use std::fmt;
 
 #[derive(Debug)]
 enum Operation {
@@ -7,15 +8,24 @@ enum Operation {
     Stop,
 }
 
+#[derive(Debug)]
+struct TryFromOperationError(usize);
+
+impl fmt::Display for TryFromOperationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "invalid operation: {}", self.0)
+    }
+}
+
 impl TryFrom<usize> for Operation {
-    type Error = String;
+    type Error = TryFromOperationError;
 
     fn try_from(item: usize) -> Result<Self, Self::Error> {
         match item {
             1 => Ok(Self::Add),
             2 => Ok(Self::Mul),
             99 => Ok(Self::Stop),
-            v => Err(format!("invalid operation: {}", v)),
+            v => Err(TryFromOperationError(v)),
         }
     }
 }
@@ -79,5 +89,33 @@ impl Iterator for IntCode {
         self.cursor += 4;
 
         Some(self.inner[0])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_from() {
+        match Operation::try_from(1) {
+            Ok(Operation::Add) => assert!(true),
+            v => assert!(false, format!("unexpected {:?}", v)),
+        }
+
+        match Operation::try_from(2) {
+            Ok(Operation::Mul) => assert!(true),
+            v => assert!(false, format!("unexpected {:?}", v)),
+        }
+
+        match Operation::try_from(99) {
+            Ok(Operation::Stop) => assert!(true),
+            v => assert!(false, format!("unexpected {:?}", v)),
+        }
+
+        match Operation::try_from(5) {
+            Err(TryFromOperationError(5)) => assert!(true),
+            v => assert!(false, format!("unexpected {:?}", v)),
+        }
     }
 }
