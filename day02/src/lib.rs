@@ -1,5 +1,5 @@
 #[derive(Debug)]
-pub enum Code {
+pub enum Operation {
     Add,
     Mul,
     Stop,
@@ -33,15 +33,15 @@ impl IntCode {
         }
     }
 
-    fn fetch_operation(&self) -> (Code, usize, usize, usize) {
+    fn fetch_operation(&self) -> (Operation, usize, usize, usize) {
         let op = match self.inner[self.cursor] {
-            1 => Code::Add,
-            2 => Code::Mul,
-            99 => Code::Stop,
+            1 => Operation::Add,
+            2 => Operation::Mul,
+            99 => Operation::Stop,
             v => panic!("invalid op: {}", v),
         };
 
-        if let Code::Stop = op {
+        if let Operation::Stop = op {
             return (op, 0, 0, 0);
         }
 
@@ -60,9 +60,9 @@ impl Iterator for IntCode {
         let (op, lhs, rhs, pos) = self.fetch_operation();
 
         match op {
-            Code::Add => self.inner[pos] = lhs + rhs,
-            Code::Mul => self.inner[pos] = lhs * rhs,
-            Code::Stop => return None,
+            Operation::Add => self.inner[pos] = lhs + rhs,
+            Operation::Mul => self.inner[pos] = lhs * rhs,
+            Operation::Stop => return None,
         };
 
         self.cursor += 4;
