@@ -57,12 +57,10 @@ impl Iterator for IntCode {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let (op, lhs, rhs, pos) = self.fetch_operation();
-
-        match op {
-            Operation::Add => self.inner[pos] = lhs + rhs,
-            Operation::Mul => self.inner[pos] = lhs * rhs,
-            Operation::Stop => return None,
+        match self.fetch_operation() {
+            (Operation::Add, lhs, rhs, pos) => self.inner[pos] = lhs + rhs,
+            (Operation::Mul, lhs, rhs, pos) => self.inner[pos] = lhs * rhs,
+            (Operation::Stop, _, _, _) => return None,
         };
 
         self.cursor += 4;
