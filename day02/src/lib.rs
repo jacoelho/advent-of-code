@@ -94,22 +94,22 @@ mod tests {
     fn test_try_from() {
         match Operation::try_from(1) {
             Ok(Operation::Add) => assert!(true),
-            v => assert!(false, format!("unexpected {:?}", v)),
+            v => assert!(false, "unexpected {:?}", v),
         }
 
         match Operation::try_from(2) {
             Ok(Operation::Mul) => assert!(true),
-            v => assert!(false, format!("unexpected {:?}", v)),
+            v => assert!(false, "unexpected {:?}", v),
         }
 
         match Operation::try_from(99) {
             Ok(Operation::Stop) => assert!(true),
-            v => assert!(false, format!("unexpected {:?}", v)),
+            v => assert!(false, "unexpected {:?}", v),
         }
 
         match Operation::try_from(5) {
             Err(TryFromOperationError(5)) => assert!(true),
-            v => assert!(false, format!("unexpected {:?}", v)),
+            v => assert!(false, "unexpected {:?}", v),
         }
     }
 }
