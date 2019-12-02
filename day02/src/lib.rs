@@ -37,18 +37,12 @@ pub struct IntCode {
 }
 
 impl IntCode {
-    pub fn new(mut v: Vec<usize>) -> Self {
+    pub fn new(v: Vec<usize>) -> Self {
         // 1202 program alarm
-        v[1] = 12;
-        v[2] = 2;
-
-        Self {
-            inner: v,
-            cursor: 0,
-        }
+        Self::new_with_noun_and_verb(v, 12, 2)
     }
 
-    pub fn new_with_noun(mut v: Vec<usize>, noun: usize, verb: usize) -> Self {
+    pub fn new_with_noun_and_verb(mut v: Vec<usize>, noun: usize, verb: usize) -> Self {
         v[1] = noun;
         v[2] = verb;
 
