@@ -4,7 +4,7 @@ use std::fs;
 fn main() -> Result<(), ::std::io::Error> {
     let contents = fs::read_to_string("test_data/input.txt")?;
 
-    let values: Vec<usize> = contents.split(",").map(|v| v.parse().unwrap()).collect();
+    let values = contents.split(",").map(|v| v.parse().unwrap()).collect::<Vec<_>>();
 
     println!("part1: {:?}", part_1(&values));
 
