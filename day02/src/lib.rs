@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 #[derive(Debug)]
 enum Operation {
     Add,
@@ -5,13 +7,15 @@ enum Operation {
     Stop,
 }
 
-impl From<usize> for Operation {
-    fn from(item: usize) -> Self {
+impl TryFrom<usize> for Operation {
+    type Error = String;
+
+    fn try_from(item: usize) -> Result<Self, Self::Error> {
         match item {
-            1 => Self::Add,
-            2 => Self::Mul,
-            99 => Self::Stop,
-            v => panic!("invalid op: {}", v),
+            1 => Ok(Self::Add),
+            2 => Ok(Self::Mul),
+            99 => Ok(Self::Stop),
+            v => Err(format!("invalid operation: {}", v)),
         }
     }
 }
@@ -45,7 +49,10 @@ impl IntCode {
     }
 
     fn fetch_operation(&self) -> (Operation, usize, usize, usize) {
-        let op = self.inner[self.cursor].into();
+        let op = match Operation::try_from(self.inner[self.cursor]) {
+            Ok(v) => v,
+            Err(err) => panic!(err),
+        };
 
         if let Operation::Stop = op {
             return (op, 0, 0, 0);
