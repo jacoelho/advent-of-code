@@ -1,8 +1,19 @@
 #[derive(Debug)]
-pub enum Operation {
+enum Operation {
     Add,
     Mul,
     Stop,
+}
+
+impl From<usize> for Operation {
+    fn from(item: usize) -> Self {
+        match item {
+            1 => Self::Add,
+            2 => Self::Mul,
+            99 => Self::Stop,
+            v => panic!("invalid op: {}", v),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -13,7 +24,7 @@ pub struct IntCode {
 
 impl IntCode {
     pub fn new(mut v: Vec<usize>) -> Self {
-        //1202 program alarm
+        // 1202 program alarm
         v[1] = 12;
         v[2] = 2;
 
@@ -34,12 +45,7 @@ impl IntCode {
     }
 
     fn fetch_operation(&self) -> (Operation, usize, usize, usize) {
-        let op = match self.inner[self.cursor] {
-            1 => Operation::Add,
-            2 => Operation::Mul,
-            99 => Operation::Stop,
-            v => panic!("invalid op: {}", v),
-        };
+        let op = self.inner[self.cursor].into();
 
         if let Operation::Stop = op {
             return (op, 0, 0, 0);
