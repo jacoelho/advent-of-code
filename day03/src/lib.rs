@@ -1,11 +1,4 @@
-#[derive(Debug)]
-struct Point {
-    x: i32,
-    y: i32,
-}
-
-impl Point {
-    pub fn new(x: i32, y: i32) -> Self {
-        Point { x, y }
-    }
-}
+pub mod board;
+pub mod direction;
+pub mod geometry;
+pub mod wire;
