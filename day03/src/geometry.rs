@@ -15,14 +15,18 @@ impl Point {
 }
 
 #[derive(Debug)]
-pub struct Line(pub Point, pub Point);
+pub struct Line {
+    pub start: Point,
+    pub end: Point,
+    pub steps: f32,
+}
 
 impl Line {
     pub fn axis_x(&self, v: f32) -> bool {
-        let (min, max) = if self.0.x > self.1.x {
-            (self.1.x, self.0.x)
+        let (min, max) = if self.start.x > self.end.x {
+            (self.end.x, self.start.x)
         } else {
-            (self.0.x, self.1.x)
+            (self.start.x, self.end.x)
         };
 
         if v > min && v < max {
@@ -33,16 +37,34 @@ impl Line {
     }
 
     pub fn axis_y(&self, v: f32) -> bool {
-        let (min, max) = if self.0.y > self.1.y {
-            (self.1.y, self.0.y)
+        let (min, max) = if self.start.y > self.end.y {
+            (self.end.y, self.start.y)
         } else {
-            (self.0.y, self.1.y)
+            (self.start.y, self.end.y)
         };
 
         if v > min && v < max {
             true
         } else {
             false
+        }
+    }
+
+    pub fn intersect_with_steps(&self, other: &Self) -> Option<(Point, f32)> {
+        if let Some(point) = self.intersect(other) {
+            if point.x == self.start.x {
+                Some((
+                    point,
+                    self.steps + other.steps + (point.y - self.start.y).abs() + (point.x - other.start.x).abs(),
+                ))
+            } else {
+                Some((
+                    point,
+                    self.steps + other.steps + (point.x - self.start.x).abs() + (point.y - other.start.y).abs(),
+                ))
+            }
+        } else {
+            None
         }
     }
 
@@ -54,14 +76,14 @@ impl Line {
         }
 
         if self.is_horizontal() {
-            if self.axis_x(other.0.x) && other.axis_y(self.0.y) {
-                Some(Point::new(other.0.x, self.0.y))
+            if self.axis_x(other.start.x) && other.axis_y(self.start.y) {
+                Some(Point::new(other.start.x, self.end.y))
             } else {
                 None
             }
         } else {
-            if self.axis_y(other.0.y) && other.axis_x(self.0.x) {
-                Some(Point::new(self.0.x, other.0.y))
+            if self.axis_y(other.start.y) && other.axis_x(self.start.x) {
+                Some(Point::new(self.start.x, other.start.y))
             } else {
                 None
             }
@@ -69,7 +91,7 @@ impl Line {
     }
 
     pub fn is_horizontal(&self) -> bool {
-        if self.0.x - self.1.x != 0. {
+        if self.start.x - self.end.x != 0. {
             true
         } else {
             false
@@ -77,7 +99,7 @@ impl Line {
     }
 
     pub fn is_vertical(&self) -> bool {
-        if self.0.y - self.1.y != 0. {
+        if self.start.y - self.end.y != 0. {
             true
         } else {
             false
