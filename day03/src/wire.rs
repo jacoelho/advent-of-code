@@ -4,15 +4,15 @@ use std::convert::TryFrom;
 #[derive(Debug)]
 pub struct Wire {
     direction: Direction,
-    length: i32,
+    length: f32,
 }
 
 impl Wire {
-    pub fn new(direction: Direction, length: i32) -> Self {
+    pub fn new(direction: Direction, length: f32) -> Self {
         Self { direction, length }
     }
 
-    pub fn len(&self) -> i32 {
+    pub fn len(&self) -> f32 {
         self.length
     }
 
@@ -30,7 +30,7 @@ impl std::str::FromStr for Wire {
             None => return Err("no direction found".to_string()),
         };
 
-        let length: i32 = match &code[1..].parse() {
+        let length: f32 = match &code[1..].parse() {
             Ok(v) => *v,
             Err(e) => return Err(e.to_string()),
         };
