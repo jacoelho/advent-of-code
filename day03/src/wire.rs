@@ -51,7 +51,7 @@ mod tests {
         match "U1213".parse::<Wire>() {
             Ok(Wire {
                 direction: Direction::Up,
-                length: 1213,
+                length: 1213.0,
             }) => assert!(true),
             v => assert!(false, "unexpected {:?}", v),
         }
@@ -59,7 +59,7 @@ mod tests {
         match "D0".parse::<Wire>() {
             Ok(Wire {
                 direction: Direction::Down,
-                length: 0,
+                length: 0.0,
             }) => assert!(true),
             v => assert!(false, "unexpected {:?}", v),
         }
@@ -67,7 +67,7 @@ mod tests {
         match "L1231".parse::<Wire>() {
             Ok(Wire {
                 direction: Direction::Left,
-                length: 1231,
+                length: 1231.0,
             }) => assert!(true),
             v => assert!(false, "unexpected {:?}", v),
         }
@@ -75,7 +75,7 @@ mod tests {
         match "D132131".parse::<Wire>() {
             Ok(Wire {
                 direction: Direction::Down,
-                length: 132131,
+                length: 132131.0,
             }) => assert!(true),
             v => assert!(false, "unexpected {:?}", v),
         }
