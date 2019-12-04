@@ -30,20 +30,16 @@ pub fn contains_consecutive(digits: &Vec<u32>) -> bool {
 }
 
 pub fn contains_pair(digits: &Vec<u32>) -> bool {
-    let frequency: HashMap<u32, u32> =
-        digits
-            .iter()
-            .zip(digits.iter().skip(1))
-            .fold(HashMap::new(), |mut state, (a, b)| {
-                if a != b {
-                    return state;
-                }
+    let frequency: HashMap<u32, u32> = digits
+        .iter()
+        .zip(digits.iter().skip(1))
+        .filter(|(x, y)| x == y)
+        .fold(HashMap::new(), |mut state, (a, _)| {
+            let count = state.entry(*a).or_insert(0);
+            *count += 1;
 
-                let count = state.entry(*a).or_insert(0);
-                *count += 1;
-
-                state
-            });
+            state
+        });
 
     frequency.values().any(|count| *count == 1)
 }
