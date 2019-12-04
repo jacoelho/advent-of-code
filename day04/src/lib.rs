@@ -16,26 +16,36 @@ pub fn number_to_vec(n: u32) -> Vec<u32> {
 }
 
 pub fn is_increasing_sequence(digits: &Vec<u32>) -> bool {
-    digits.iter().zip(digits[1..].iter()).all(|(x, y)| y >= x)
+    digits
+        .iter()
+        .zip(digits.iter().skip(1))
+        .all(|(x, y)| y >= x)
 }
 
 pub fn contains_consecutive(digits: &Vec<u32>) -> bool {
-    digits.iter().zip(digits[1..].iter()).any(|(x, y)| x == y)
+    digits
+        .iter()
+        .zip(digits.iter().skip(1))
+        .any(|(x, y)| x == y)
 }
 
 pub fn contains_pair(digits: &Vec<u32>) -> bool {
-    let mut counter: HashMap<u32, u32> = HashMap::new();
+    let frequency: HashMap<u32, u32> =
+        digits
+            .iter()
+            .zip(digits.iter().skip(1))
+            .fold(HashMap::new(), |mut state, (a, b)| {
+                if a != b {
+                    return state;
+                }
 
-    for (a, b) in digits.iter().zip(digits[1..].iter()) {
-        if a != b {
-            continue;
-        }
+                let count = state.entry(*a).or_insert(0);
+                *count += 1;
 
-        let count = counter.entry(*a).or_insert(0);
-        *count += 1;
-    }
+                state
+            });
 
-    counter.into_iter().any(|(_v, count)| count == 1)
+    frequency.values().any(|count| *count == 1)
 }
 
 #[cfg(test)]
