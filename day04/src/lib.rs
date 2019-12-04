@@ -35,7 +35,7 @@ pub fn contains_pair(digits: &Vec<u32>) -> bool {
         *count += 1;
     }
 
-    counter.into_iter().any(|(v, count)| count == 1)
+    counter.into_iter().any(|(_v, count)| count == 1)
 }
 
 #[cfg(test)]
