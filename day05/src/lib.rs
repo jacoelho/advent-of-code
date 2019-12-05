@@ -26,6 +26,10 @@ enum Opcode {
     Stop,
     Input,
     Output,
+    JumpIfTrue,
+    JumpIfFalse,
+    LessThan,
+    Equals,
 }
 
 impl TryFrom<i32> for Opcode {
@@ -37,20 +41,12 @@ impl TryFrom<i32> for Opcode {
             2 => Ok(Self::Mul),
             3 => Ok(Self::Input),
             4 => Ok(Self::Output),
+            5 => Ok(Self::JumpIfTrue),
+            6 => Ok(Self::JumpIfFalse),
+            7 => Ok(Self::LessThan),
+            8 => Ok(Self::Equals),
             99 => Ok(Self::Stop),
             v => Err(format!("invalid opcode: {}", v)),
-        }
-    }
-}
-
-impl Opcode {
-    fn parameter_count(&self) -> usize {
-        match self {
-            Self::Add => 3,
-            Self::Mul => 3,
-            Self::Stop => 0,
-            Self::Input => 1,
-            Self::Output => 1,
         }
     }
 }
@@ -85,13 +81,15 @@ impl TryFrom<i32> for Instruction {
 pub struct IntCode {
     inner: Vec<i32>,
     instruction_point: usize,
+    input: i32,
 }
 
 impl IntCode {
-    pub fn new(mut v: Vec<i32>) -> Self {
+    pub fn new(mut v: Vec<i32>, input: i32) -> Self {
         Self {
             inner: v,
             instruction_point: 0,
+            input: input,
         }
     }
 
@@ -120,6 +118,10 @@ impl IntCode {
             Mode::Position => self.inner[self.inner[self.instruction_point + 2] as usize],
         };
 
+        if instruction.opcode == Opcode::JumpIfTrue || instruction.opcode == Opcode::JumpIfFalse {
+            return (instruction.opcode, lhs, 0, rhs as usize);
+        }
+
         let pos = self.inner[self.instruction_point + 3];
 
         (instruction.opcode, lhs, rhs, pos as usize)
@@ -133,14 +135,46 @@ impl Iterator for IntCode {
         let instruction = self.fetch_instruction();
 
         match instruction {
-            (Opcode::Add, lhs, rhs, pos) => self.inner[pos] = lhs + rhs,
-            (Opcode::Mul, lhs, rhs, pos) => self.inner[pos] = lhs * rhs,
-            (Opcode::Input, _, _, pos) => self.inner[pos] = 1,
-            (Opcode::Output, _, _, pos) => println!("diagnostic: {}", self.inner[pos]),
+            (Opcode::Add, lhs, rhs, pos) => {
+                self.inner[pos] = lhs + rhs;
+                self.instruction_point += 4;
+            }
+            (Opcode::Mul, lhs, rhs, pos) => {
+                self.inner[pos] = lhs * rhs;
+                self.instruction_point += 4;
+            }
+            (Opcode::Input, _, _, pos) => {
+                self.inner[pos] = self.input;
+                self.instruction_point += 2;
+            }
+            (Opcode::Output, _, _, pos) => {
+                println!("diagnostic: {}", self.inner[pos]);
+                self.instruction_point += 2;
+            }
+            (Opcode::JumpIfTrue, pred, _, pos) => {
+                self.instruction_point = if pred != 0 {
+                    pos
+                } else {
+                    self.instruction_point + 3
+                };
+            }
+            (Opcode::JumpIfFalse, pred, _, pos) => {
+                self.instruction_point = if pred == 0 {
+                    pos
+                } else {
+                    self.instruction_point + 3
+                };
+            }
+            (Opcode::LessThan, lhs, rhs, pos) => {
+                self.inner[pos] = if lhs < rhs { 1 } else { 0 };
+                self.instruction_point += 4;
+            }
+            (Opcode::Equals, lhs, rhs, pos) => {
+                self.inner[pos] = if lhs == rhs { 1 } else { 0 };
+                self.instruction_point += 4;
+            }
             (Opcode::Stop, _, _, _) => return None,
         };
-
-        self.instruction_point = self.instruction_point + 1 + instruction.0.parameter_count();
 
         Some(self.inner[0])
     }
@@ -167,7 +201,7 @@ mod tests {
             v => assert!(false, "unexpected {:?}", v),
         }
 
-        match Opcode::try_from(5) {
+        match Opcode::try_from(9) {
             Err(_) => assert!(true),
             v => assert!(false, "unexpected {:?}", v),
         }
@@ -234,6 +268,7 @@ mod tests {
         let subject = IntCode {
             inner: vec![1002, 4, 3, 4, 33],
             instruction_point: 0,
+            input: 0,
         };
 
         assert_eq!(subject.fetch_instruction(), (Opcode::Mul, 33, 3, 4));
