@@ -27,7 +27,10 @@ fn part1(orbits: &HashMap<String, Vec<String>>) -> usize {
 }
 
 fn part2(orbits: &HashMap<String, Vec<String>>) -> Option<usize> {
-    traverse_orbits("YOU", &orbits).get("SAN").copied()
+    match traverse_orbits("YOU", &orbits).get("SAN") {
+        Some(v) => Some(v - 2),
+        None => None,
+    }
 }
 
 fn traverse_orbits<'a>(
