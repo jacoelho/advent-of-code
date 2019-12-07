@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::convert::TryFrom;
 use std::fmt;
 
@@ -81,24 +82,36 @@ impl TryFrom<i32> for Instruction {
 pub struct IntCode {
     inner: Vec<i32>,
     instruction_point: usize,
-    input1: i32,
-    input2: i32,
-    input_counter: i32,
-    output: i32,
-    stopped: bool,
+    inputs: VecDeque<i32>,
+}
+
+#[derive(Debug)]
+pub enum IntCodeState {
+    Stopped,
+    WaitingInput,
+    Output(i32),
 }
 
 impl IntCode {
-    pub fn new(mut v: Vec<i32>, input1: i32, input2: i32) -> Self {
+    pub fn new(mut v: Vec<i32>) -> Self {
         Self {
             inner: v,
             instruction_point: 0,
-            input1: input1,
-            input2: input2,
-            input_counter: 0,
-            output: 0,
-            stopped: false,
+            inputs: VecDeque::new(),
         }
+    }
+
+    pub fn new_with_inputs(mut v: Vec<i32>, setting: i32, input: i32) -> Self {
+        let mut code = Self::new(v);
+
+        code.insert_input(setting);
+        code.insert_input(input);
+
+        code
+    }
+
+    pub fn insert_input(&mut self, input: i32) {
+        self.inputs.push_back(input);
     }
 
     fn fetch_instruction(&self) -> (Opcode, i32, i32, usize) {
@@ -134,164 +147,67 @@ impl IntCode {
 
         (instruction.opcode, lhs, rhs, pos as usize)
     }
-}
 
-impl Iterator for IntCode {
-    type Item = i32;
+    pub fn until_stops(&mut self) -> Result<i32,&str> {
+        let mut output = 0;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.stopped {
-            return None;
+        loop {
+            match self.process() {
+                IntCodeState::Stopped => return Ok(output),
+                IntCodeState::WaitingInput => return Err("missing inputs"),
+                IntCodeState::Output(value) => output = value,
+            }
         }
+    }
 
-        let instruction = self.fetch_instruction();
+    pub fn process(&mut self) -> IntCodeState {
+        loop {
+            let instruction = self.fetch_instruction();
 
-        match instruction {
-            (Opcode::Add, lhs, rhs, pos) => {
-                self.inner[pos] = lhs + rhs;
-                self.instruction_point += 4;
-            }
-            (Opcode::Mul, lhs, rhs, pos) => {
-                self.inner[pos] = lhs * rhs;
-                self.instruction_point += 4;
-            }
-            (Opcode::Input, _, _, pos) => {
-                if self.input_counter == 0 {
-                    self.inner[pos] = self.input1;
-                    self.input_counter += 1;
-                } else {
-                    self.inner[pos] = self.input2;
+            match instruction {
+                (Opcode::Add, lhs, rhs, pos) => {
+                    self.inner[pos] = lhs + rhs;
+                    self.instruction_point += 4;
                 }
-
-                self.instruction_point += 2;
+                (Opcode::Mul, lhs, rhs, pos) => {
+                    self.inner[pos] = lhs * rhs;
+                    self.instruction_point += 4;
+                }
+                (Opcode::Input, _, _, pos) => {
+                    match self.inputs.pop_front() {
+                        Some(x) => self.inner[pos] = x,
+                        None => return IntCodeState::WaitingInput,
+                    };
+                    self.instruction_point += 2;
+                }
+                (Opcode::Output, _, _, pos) => {
+                    self.instruction_point += 2;
+                    return IntCodeState::Output(self.inner[pos]);
+                }
+                (Opcode::JumpIfTrue, pred, _, pos) => {
+                    self.instruction_point = if pred != 0 {
+                        pos
+                    } else {
+                        self.instruction_point + 3
+                    };
+                }
+                (Opcode::JumpIfFalse, pred, _, pos) => {
+                    self.instruction_point = if pred == 0 {
+                        pos
+                    } else {
+                        self.instruction_point + 3
+                    };
+                }
+                (Opcode::LessThan, lhs, rhs, pos) => {
+                    self.inner[pos] = if lhs < rhs { 1 } else { 0 };
+                    self.instruction_point += 4;
+                }
+                (Opcode::Equals, lhs, rhs, pos) => {
+                    self.inner[pos] = if lhs == rhs { 1 } else { 0 };
+                    self.instruction_point += 4;
+                }
+                (Opcode::Stop, _, _, _) => return IntCodeState::Stopped,
             }
-            (Opcode::Output, _, _, pos) => {
-                self.output = self.inner[pos];
-                self.instruction_point += 2;
-            }
-            (Opcode::JumpIfTrue, pred, _, pos) => {
-                self.instruction_point = if pred != 0 {
-                    pos
-                } else {
-                    self.instruction_point + 3
-                };
-            }
-            (Opcode::JumpIfFalse, pred, _, pos) => {
-                self.instruction_point = if pred == 0 {
-                    pos
-                } else {
-                    self.instruction_point + 3
-                };
-            }
-            (Opcode::LessThan, lhs, rhs, pos) => {
-                self.inner[pos] = if lhs < rhs { 1 } else { 0 };
-                self.instruction_point += 4;
-            }
-            (Opcode::Equals, lhs, rhs, pos) => {
-                self.inner[pos] = if lhs == rhs { 1 } else { 0 };
-                self.instruction_point += 4;
-            }
-            (Opcode::Stop, _, _, _) => {
-                self.stopped = true;
-                return Some(self.output);
-            }
-        };
-
-        Some(-1)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_opcode() {
-        match Opcode::try_from(1) {
-            Ok(Opcode::Add) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
         }
-
-        match Opcode::try_from(2) {
-            Ok(Opcode::Mul) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-
-        match Opcode::try_from(99) {
-            Ok(Opcode::Stop) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-
-        match Opcode::try_from(9) {
-            Err(_) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-    }
-
-    #[test]
-    fn test_mode() {
-        match Mode::try_from(0) {
-            Ok(Mode::Position) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-
-        match Mode::try_from(1) {
-            Ok(Mode::Immediate) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-
-        match Mode::try_from(5) {
-            Err(_) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-    }
-
-    #[test]
-    fn test_instruction() {
-        match Instruction::try_from(1002) {
-            Ok(Instruction {
-                opcode: Opcode::Mul,
-                parameter_one: Mode::Position,
-                parameter_two: Mode::Immediate,
-                parameter_three: Mode::Position,
-            }) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-
-        match Instruction::try_from(01002) {
-            Ok(Instruction {
-                opcode: Opcode::Mul,
-                parameter_one: Mode::Position,
-                parameter_two: Mode::Immediate,
-                parameter_three: Mode::Position,
-            }) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-
-        match Instruction::try_from(11199) {
-            Ok(Instruction {
-                opcode: Opcode::Stop,
-                parameter_one: Mode::Immediate,
-                parameter_two: Mode::Immediate,
-                parameter_three: Mode::Immediate,
-            }) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-
-        match Instruction::try_from(12199) {
-            Err(_) => assert!(true),
-            v => assert!(false, "unexpected {:?}", v),
-        }
-    }
-
-    #[test]
-    fn test_fetch() {
-        let subject = IntCode {
-            inner: vec![1002, 4, 3, 4, 33],
-            instruction_point: 0,
-            input: 0,
-        };
-
-        assert_eq!(subject.fetch_instruction(), (Opcode::Mul, 33, 3, 4));
     }
 }
