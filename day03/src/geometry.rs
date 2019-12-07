@@ -55,12 +55,18 @@ impl Line {
             if point.x == self.start.x {
                 Some((
                     point,
-                    self.steps + other.steps + (point.y - self.start.y).abs() + (point.x - other.start.x).abs(),
+                    self.steps
+                        + other.steps
+                        + (point.y - self.start.y).abs()
+                        + (point.x - other.start.x).abs(),
                 ))
             } else {
                 Some((
                     point,
-                    self.steps + other.steps + (point.x - self.start.x).abs() + (point.y - other.start.y).abs(),
+                    self.steps
+                        + other.steps
+                        + (point.x - self.start.x).abs()
+                        + (point.y - other.start.y).abs(),
                 ))
             }
         } else {

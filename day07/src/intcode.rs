@@ -1,6 +1,5 @@
 use std::collections::VecDeque;
 use std::convert::TryFrom;
-use std::fmt;
 
 #[derive(Debug, PartialEq)]
 enum Mode {
@@ -93,7 +92,7 @@ pub enum IntCodeState {
 }
 
 impl IntCode {
-    pub fn new(mut v: Vec<i32>) -> Self {
+    pub fn new(v: Vec<i32>) -> Self {
         Self {
             inner: v,
             instruction_point: 0,
@@ -101,7 +100,7 @@ impl IntCode {
         }
     }
 
-    pub fn new_with_inputs(mut v: Vec<i32>, setting: i32, input: i32) -> Self {
+    pub fn new_with_inputs(v: Vec<i32>, setting: i32, input: i32) -> Self {
         let mut code = Self::new(v);
 
         code.insert_input(setting);
@@ -148,7 +147,7 @@ impl IntCode {
         (instruction.opcode, lhs, rhs, pos as usize)
     }
 
-    pub fn until_stops(&mut self) -> Result<i32,&str> {
+    pub fn until_stops(&mut self) -> Result<i32, &str> {
         let mut output = 0;
 
         loop {
