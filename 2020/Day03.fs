@@ -26,7 +26,7 @@ let navigate (initialX: int, initialY: int) (x: int, y: int) (area: char [] []) 
 let arborealCount (x: int, y: int) area =
     area
     |> navigate (0, 0) (x, y)
-    |> Seq.filter isTree
+    |> Seq.countBy isTree
     |> Seq.length
 
 let Part1 file =
