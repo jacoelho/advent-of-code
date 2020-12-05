@@ -25,9 +25,9 @@ let findSeat (seats: int seq) =
         let len = seats |> Seq.length
 
         match code with
-        | Direction.F -> seats |> Seq.take (len >>> 1)
-        | Direction.B -> seats |> Seq.skip (len >>> 1)
+        | Direction.F
         | Direction.L -> seats |> Seq.take (len >>> 1)
+        | Direction.B
         | Direction.R -> seats |> Seq.skip (len >>> 1)) seats
 
 let row seat =
@@ -56,14 +56,12 @@ let Part1 file =
     file |> readInput |> Array.map seatID |> Array.max
 
 let Part2 file =
-    let seats = file |> readInput |> Array.map seatID
+    let seats = file |> readInput |> Array.map seatID |> Set.ofArray
 
     let allSeats =
-        seq { (seats |> Array.min) .. (seats |> Array.max) }
+        seq { (seats |> Set.minElement) .. (seats |> Set.maxElement) }
         |> Set.ofSeq
 
-    let seatsSet = seats |> Set.ofArray
-
-    Set.difference allSeats seatsSet
+    Set.difference allSeats seats
     |> Set.toList
     |> List.head
