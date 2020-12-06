@@ -19,15 +19,17 @@ let partitionBy (func: 'T -> bool) (sequence: 'T seq): 'T list seq =
 
 let readInput file = file |> File.ReadAllLines
 
+let ToCharArray (s: string): char [] = s.ToCharArray()
+
 let Part1 file =
     file
     |> readInput
     |> partitionBy String.IsNullOrEmpty
     |> Seq.map (fun group ->
         group
-        |> Seq.map (fun el -> el.ToCharArray())
-        |> Seq.fold Seq.append Seq.empty<char>)
-    |> Seq.sumBy (Set.ofSeq >> Set.count)
+        |> Seq.map (ToCharArray >> Set.ofArray)
+        |> Seq.reduce (+))
+    |> Seq.sumBy Set.count
 
 let Part2 file =
     file
@@ -35,6 +37,6 @@ let Part2 file =
     |> partitionBy String.IsNullOrEmpty
     |> Seq.map (fun group ->
         group
-        |> Seq.map (fun el -> el.ToCharArray() |> Set.ofArray)
+        |> Seq.map (ToCharArray >> Set.ofArray)
         |> Seq.reduce Set.intersect)
     |> Seq.sumBy Set.count
