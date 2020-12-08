@@ -1,8 +1,7 @@
-open Day07
+open Day08
 
 [<EntryPoint>]
 let main argv =
-    let input = "inputs/day07.txt"
-    printfn "Part01: %A" ( input |> Day07.Part1)
-    printfn "Part02: %A" (input |> Day07.Part2)
+    printfn "Part01: %A" ( argv.[0] |> Day08.Part1)
+    printfn "Part02: %A" (argv.[0] |> Day08.Part2)
     0
