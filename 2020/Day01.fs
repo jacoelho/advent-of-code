@@ -1,41 +1,34 @@
 module Day01
 
-open System
-open System.IO
-
-let readInput file =
-    file
-    |> File.ReadAllLines
-    |> Array.map Int32.Parse
-    |> Array.toList
-
-let rec pairs input =
+let rec pairs (input: int array) =
     seq {
-        match input with
-        | x :: xs ->
-            for e in xs do
-                yield [ x; e ]
-            yield! pairs xs
-        | _ -> ()
+        for i in 0 .. input.Length - 1 do
+            for j in i + 1 .. input.Length - 1 do
+                yield (input.[i], input.[j])
     }
 
-let rec triplets input =
+let rec triplets (input: int array) =
     seq {
-        match input with
-        | x :: xs ->
-            for pair in pairs (xs) do
-                yield x :: pair
-            yield! triplets xs
-        | _ -> ()
+        for i in 0 .. input.Length - 1 do
+            for j in i + 1 .. input.Length - 1 do
+                for k in j + 1 .. input.Length - 1 do
+                    yield (input.[i], input.[j], input.[k])
     }
 
-let day01 input combinationFun =
-    input
-    |> combinationFun
-    |> Seq.filter (fun el -> List.sum el = 2020)
-    |> Seq.head
-    |> Seq.fold (*) 1
+let Part1 (input: string array) =
+    let (a, b) =
+        input
+        |> Array.map (int)
+        |> pairs
+        |> Seq.find (fun (x, y) -> x + y = 2020)
 
-let day01Part1 input = day01 input pairs
+    a * b
 
-let day01Part2 input = day01 input triplets
+let Part2 (input: string array) =
+    let (a, b, c) =
+        input
+        |> Array.map (int)
+        |> triplets
+        |> Seq.find (fun (x, y, z) -> x + y + z = 2020)
+
+    a * b * c
