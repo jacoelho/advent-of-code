@@ -85,18 +85,18 @@ let Part2 input =
         match positions with
         | [] -> result
         | _ ->
-            let value =
+            let (ruleName, idx) =
                 rules
-                |> List.map (fun rule -> ((rule |> fst), possiblePositions positions tickets (rule |> snd)))
+                |> List.map (fun (ruleName, range) -> (ruleName, possiblePositions positions tickets range))
                 |> Seq.filter (fun (_, el) -> el |> Seq.length = 1)
                 |> Seq.map (fun (rule, el) -> (rule, el |> Seq.head))
                 |> Seq.head
 
             loop
-                (value :: result)
-                (positions |> List.filter ((<>) (value |> snd)))
+                ((ruleName, idx):: result)
+                (positions |> List.filter ((<>) idx))
                 (rules
-                 |> List.filter (fun (rule, _) -> rule <> (value |> fst)))
+                 |> List.filter (fun (ruleName', _) -> ruleName' <> ruleName))
 
     let result =
         loop
