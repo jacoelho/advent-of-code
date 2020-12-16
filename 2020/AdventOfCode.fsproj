@@ -5,6 +5,9 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Sequence.fs" />
+    <Compile Include="List.fs" />
+    <Compile Include="Range.fs" />
     <Compile Include="Day01.fs" />
     <Compile Include="Day02.fs" />
     <Compile Include="Day03.fs" />
@@ -20,6 +23,7 @@
     <Compile Include="Day13.fs" />
     <Compile Include="Day14.fs" />
     <Compile Include="Day15.fs" />
+    <Compile Include="Day16.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>
