@@ -92,11 +92,7 @@ let Part2 input =
                 |> Seq.map (fun (rule, el) -> (rule, el |> Seq.head))
                 |> Seq.head
 
-            loop
-                ((ruleName, idx):: result)
-                (positions |> List.filter ((<>) idx))
-                (rules
-                 |> List.filter (fun (ruleName', _) -> ruleName' <> ruleName))
+            loop ((ruleName, idx) :: result) (positions |> List.filter ((<>) idx)) rules
 
     let result =
         loop
