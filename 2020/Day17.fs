@@ -76,9 +76,9 @@ let updateState3D coords (m: Map<int * int * int, State>) (m': Map<int * int * i
     | Some (Active) ->
         if activeNeighbours = 2 || activeNeighbours = 3
         then m'
-        else m' |> Map.add coords Inactive
+        else m' |> Map.remove coords
     | _ when activeNeighbours = 3 -> m' |> Map.add coords Active
-    | _ -> m' |> Map.add coords Inactive
+    | _ -> m'
 
 let updateState4D coords (m: Map<int * int * int * int, State>) (m': Map<int * int * int * int, State>) =
     let activeNeighbours = m |> adjacentActive4D coords
@@ -87,7 +87,7 @@ let updateState4D coords (m: Map<int * int * int * int, State>) (m': Map<int * i
     | Some (Active) ->
         if activeNeighbours = 2 || activeNeighbours = 3
         then m'
-        else m' |> Map.add coords Inactive
+        else m' |> Map.remove coords
     | _ when activeNeighbours = 3 -> m' |> Map.add coords Active
     | _ -> m' |> Map.add coords Inactive
 
