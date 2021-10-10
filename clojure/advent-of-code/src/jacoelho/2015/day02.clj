@@ -10,7 +10,7 @@
        (map aoc/->int)))
 
 (def day02-input
-  (aoc/read-input parse "2015/day02.txt"))
+  (aoc/read-lines parse "2015/day02.txt"))
 
 (defn side-areas
   [[length width height]]
