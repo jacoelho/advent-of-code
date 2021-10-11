@@ -1,8 +1,7 @@
 (ns jacoelho.2015.day05
   (:require
    [jacoelho.2015.aoc :as aoc]
-   [clojure.test :refer [testing is]]
-   [clojure.set :as set]))
+   [clojure.test :refer [testing is]]))
 
 (def day05-input (aoc/read-lines "2015/day05.txt"))
 
@@ -18,8 +17,8 @@
 
 (defn at-least-twice?
   [input]
-  (boolean  (some (fn [[a b]]
-                    (= a b)) (map vector input (rest input)))))
+  (boolean (some (fn [[a b]]
+                   (= a b)) (map vector input (rest input)))))
 
 (defn not-contains-banned-substring?
   [input]
@@ -43,24 +42,28 @@
   (is (= false (is-nice-string? "dvszwmarrgswjxmb")))
   (is (= 258 (part01 day05-input))))
 
+
+(defn abs [n] (max n (- n)))
+
 (defn contains-two-pairs?
   [input]
   (->> input
-       (map-indexed (fn [idx el] [idx el]))                ;; index elements
-       (partition 2 1)                                     ;; create a pair with next element
-       (map (fn [[[i a] [j b]]] [#{i j} [a b]]))           ;; create simplify pair 
-       (group-by (fn [[_ a]] a))                           ;; group by elements
-       (vals)                                              
-       (filter (fn [elms] (>= (count elms) 2)))            ;; get elements with at least 2 (pairs)
-       (map #(map (fn [[pos _]] pos) %))                   ;; get sets with positions
-       (map (partial apply clojure.set/intersection))      ;; check if they intersect 
-       (some empty?)))                                     ;; we want sets without overlaps
+       (partition 2 1)                                     
+       (map-indexed (fn [idx el] [idx el]))                
+       (group-by second)
+       (some (fn [[_ pairs]]
+                 (let [[a b] (map first pairs)]
+                   (cond (> (count pairs) 2) true
+                         (= (count pairs) 2) (not= (abs (- a b)) 1)
+                         :else false))))
+       (boolean)))
 
 (defn contains-letter-repeats-with-one-between?
   [input]
   (->> input
        (partition 3 1)
-       (some (fn [[a _ c]] (= a c)))))
+       (some (fn [[a _ c]] (= a c)))
+       (boolean)))
 
 (defn is-nicer-string?
   [input]
