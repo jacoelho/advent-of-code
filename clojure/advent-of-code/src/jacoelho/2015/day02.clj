@@ -1,6 +1,6 @@
 (ns jacoelho.2015.day02
   (:require
-   [jacoelho.2015.aoc :as aoc]
+   [jacoelho.aoc :as aoc]
    [clojure.test :refer [testing is]]
    [clojure.string :as str]))
 

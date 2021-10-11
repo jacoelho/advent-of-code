@@ -1,4 +1,4 @@
-(ns jacoelho.2015.aoc 
+(ns jacoelho.aoc 
   (:require [clojure.java.io :as io]))
 
 (defn read-lines

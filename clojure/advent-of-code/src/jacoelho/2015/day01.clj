@@ -1,10 +1,11 @@
 (ns jacoelho.2015.day01 
   (:require
-    [clojure.test :refer [testing is]]
-    [clojure.java.io :as io]))
+   [jacoelho.aoc :as aoc]
+   [clojure.test :refer [testing is]]
+   [clojure.java.io :as io]))
 
 (def day01-input
-  (slurp (io/resource "2015/day01.txt")))
+  (aoc/read-input "2015/day01.txt"))
 
 (defn floor
   [direction]
