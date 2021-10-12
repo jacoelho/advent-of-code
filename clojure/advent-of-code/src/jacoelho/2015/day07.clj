@@ -97,7 +97,7 @@
 (def day07-with-override
   (map (fn [[_ v :as line]]
          (if (= v "b")
-           [:assign "b" 3176]
+           [:assign "b" (part01 day07-input)]
            line)) day07-input))
 
 (testing "Part 02"
