@@ -1,9 +1,10 @@
 (ns jacoelho.2015.day07
   (:require
    [jacoelho.aoc :as aoc]
-   [clojure.test :refer [testing is]]))
+   [clojure.test :refer [testing is]]
+   [clojure.string :as str]))
 
-(def mask 
+(def mask
   "16 bit mask"
   0xffff)
 
@@ -27,60 +28,77 @@
   [x]
   (bit-and (bit-not x) mask))
 
+(defn uint-or-string
+  [value]
+  (try
+    (aoc/->uint value)
+    (catch NumberFormatException _ value)))
+
 (defn parse-line
   [line]
   (condp re-matches line
-    #"^(\d+) -> (\w+)$" 
-    :>> (fn [[_ value result]] [:assign result (aoc/->uint value)])
+    #"^(\w+) -> ([a-z]+)$"
+    :>> (fn [[_ value result]] [:assign result (uint-or-string value)])
 
-    #"^(\w+) -> (\w+)$"
-    :>> (fn [[_ left result]] [:assign-from result left])
+    #"^(\w+) AND (\w+) -> ([a-z]+)$"
+    :>> (fn [[_ left right result]] [:and result (uint-or-string left) (uint-or-string right)])
 
-    #"^(\w+) AND (\w+) -> (\w+)$"
-    :>> (fn [[_ left right result]] [:and result left right])
-    
-    #"^(\w+) OR (\w+) -> (\w+)$"
-    :>> (fn [[_ left right result]] [:or result left right])
-    
-    #"^(\w+) LSHIFT (\w+) -> (\w+)$"
-    :>> (fn [[_ left value result]] [:lshift result left (aoc/->uint value)])
-    
-    #"^(\w+) RSHIFT (\w+) -> (\w+)$"
-    :>> (fn [[_ left value result]] [:rshift result left (aoc/->uint value)])
+    #"^(\w+) OR (\w+) -> ([a-z]+)$"
+    :>> (fn [[_ left right result]] [:or result (uint-or-string left) (uint-or-string right)])
 
-    #"^NOT (\w+) -> (\w+)$"
-    :>> (fn [[_ left result]] [:not result left])))
+    #"^(\w+) LSHIFT (\w+) -> ([a-z]+)$"
+    :>> (fn [[_ left right result]] [:lshift result (uint-or-string left) (uint-or-string right)])
 
-(def day07-input (aoc/read-lines parse-line "2015/day07.txt"))
+    #"^(\w+) RSHIFT (\w+) -> ([a-z]+)$"
+    :>> (fn [[_ left right result]] [:rshift result (uint-or-string left) (uint-or-string right)])
+
+    #"^NOT (\w+) -> ([a-z]+)$"
+    :>> (fn [[_ left result]] [:not result (uint-or-string left)])))
+
+(def day07-input
+  (aoc/read-lines parse-line "2015/day07.txt"))
 
 (defn update-circuit
-  [circuit f result & args]
-  (let [values (map #(get circuit % nil) args)]
-    (assoc circuit result (apply f values))))
+  [circuit result f & args]
+  (let [values (map #(get circuit % %) args)]
+    (if (every? number? values)
+      (assoc circuit result (apply f values))
+      circuit)))
 
-(update-circuit {} gate-and "a" "c" "d")
-
-(defn simulate
+(defn emulate
   [circuit [op result argument-1 argument-2]]
   (case op
-    :assign (assoc circuit result argument-1)
+    :assign (update-circuit circuit result identity argument-1)
 
-    :assign-from (assoc circuit result (get circuit argument-1 0))
-    
-    :not (assoc circuit result (gate-not (get circuit argument-1 0)))
-    
-    :and (assoc circuit result (gate-and (get circuit argument-1 0)
-                                         (get circuit argument-2 0)))
-    
-    :or (assoc circuit result (gate-or (get circuit argument-1 0) 
-                                       (get circuit argument-2 0)))
-    
-    :lshift (assoc circuit result (gate-lshift (get circuit argument-1 0)
-                                               argument-2))
-    
-    :rshift (assoc circuit result (gate-rshift (get circuit argument-1 0)
-                                               argument-2))))
+    :not (update-circuit circuit result gate-not argument-1)
 
+    :and (update-circuit circuit result gate-and argument-1 argument-2)
+
+    :or (update-circuit circuit result gate-or argument-1 argument-2)
+
+    :lshift (update-circuit circuit result gate-lshift argument-1 argument-2)
+
+    :rshift (update-circuit circuit result gate-rshift argument-1 argument-2)))
+
+;; brute force seems to work ok
+;; "Elapsed time: 17.869453 msecs"
 (defn part01
   [input]
-  (get (reduce simulate {} input) "a"))
+  (loop [circuit {}]
+    (let [value (get circuit "a")]
+      (if (not (nil? value))
+        value
+        (recur (reduce emulate circuit input))))))
+
+(testing "Part 01"
+  (is (= 3176 (part01 day07-input))))
+
+;; just replace the input (-;
+(def day07-with-override
+  (map (fn [[_ v :as line]]
+         (if (= v "b")
+           [:assign "b" 3176]
+           line)) day07-input))
+
+(testing "Part 02"
+  (is (= 14710 (part01 day07-with-override))))
