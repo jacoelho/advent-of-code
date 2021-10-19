@@ -34,15 +34,7 @@
 
 (defn count-encoded
   [input]
-  (loop [count         2
-         [x & xs] input]
-    (if (nil? x)
-      count
-      (recur (case x
-               \" (+ 2 count)
-               \\ (+ 2 count)
-               (inc count)) 
-             xs))))
+  (reduce + 2 (map #(case % (\\ \") 2 1) input)))
 
 (defn part02
   [input]
