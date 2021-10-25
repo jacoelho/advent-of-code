@@ -33,3 +33,11 @@
 
 (defn digits->long [col]
   (reduce #(+ (* 10 %) %2) (long 0) col))
+
+(defn permutations-set [s]
+  (lazy-seq
+   (if (next s)
+     (for [head s
+           tail (permutations-set (disj s head))]
+       (cons head tail))
+     [s])))
