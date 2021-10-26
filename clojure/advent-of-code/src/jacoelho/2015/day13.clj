@@ -43,7 +43,6 @@ David would gain 41 happiness units by sitting next to Carol."))))
    (vals)
    (reduce + 0)))
 
-
 (defn arrangements
   [input]
   (->> input
@@ -51,10 +50,11 @@ David would gain 41 happiness units by sitting next to Carol."))))
        (map first)
        (set)
        (aoc/permutations-set)
-       (map (partial into []))
-       (map #(conj % (first %)))
-       (map (partial partition 2 1))
-       (map (partial map (partial into [])))))
+       (map (comp
+             (partial map (partial into []))
+             (partial partition 2 1)
+             #(conj % (first %))
+             (partial into [])))))
 
 (defn part01
   [input]
