@@ -1,7 +1,7 @@
 (ns jacoelho.2015.day17
   (:require
    [jacoelho.aoc :as aoc]
-   [clojure.test :refer [testing is]]
+   [clojure.test :refer [testing is deftest]]
    [clojure.math.combinatorics :refer [subsets]]))
 
 (def day17-input
@@ -27,8 +27,8 @@
        (map count)
        (apply min)))
 
-(testing "Part 01"
-  (is (= 4372 (part01 day17-input))))
-
-(testing "Part 02"
-  (is (= 4 (part02 day17-input))))
+(deftest day17
+  (testing "Part 01"
+    (is (= 4372 (part01 day17-input))))
+  (testing "Part 02"
+    (is (= 4 (part02 day17-input)))))
