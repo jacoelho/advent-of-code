@@ -8,7 +8,7 @@
        (io/reader)
        (line-seq)))
   ([f input]
-   (map f (read-lines input))))
+   (mapv f (read-lines input))))
 
 (defn read-input
   "Reads aoc lines"
@@ -41,3 +41,12 @@
            tail (permutations-set (disj s head))]
        (cons head tail))
      [s])))
+
+(defn subs-index
+  [^String s ^String v]
+  (loop [result (transient [])
+         idx    (int 0)]
+    (let [idx' (.indexOf s v idx)]
+      (if (neg? idx')
+        (persistent! result)
+        (recur (conj! result [v idx']) (inc idx'))))))
