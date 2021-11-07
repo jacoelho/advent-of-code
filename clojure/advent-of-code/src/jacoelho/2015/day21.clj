@@ -1,85 +1,82 @@
 (ns jacoelho.2015.day21
   (:require
-   [jacoelho.aoc :as aoc]
-   [clojure.test :refer [testing is]]
-    [clojure.math.combinatorics :refer [subsets combinations]]))
+    [jacoelho.aoc :as aoc]
+    [clojure.test :refer [testing is]]
+    [clojure.math.combinatorics :refer [subsets combinations]]
+    [clojure.set :as set]))
 
 (def weapons
   [
    {:name   "Dagger"
     :cost   8
     :damage 4
-    :armor  4}
+    :armor  0}
    {:name   "Shortsword"
     :cost   10
     :damage 5
-    :armor  5}
+    :armor  0}
    {:name   "Warhammer"
     :cost   25
     :damage 6
-    :armor  6}
+    :armor  0}
    {:name   "Longsword"
     :cost   40
     :damage 7
-    :armor  7}
+    :armor  0}
    {:name   "Greataxe"
     :cost   74
     :damage 8
-    :armor  8}
-   ])
+    :armor  0}])
 
 (def armor
   [
    {:name   "Leather"
     :cost   13
     :damage 0
-    :armor  0}
+    :armor  1}
    {:name   "Chainmail"
     :cost   31
     :damage 0
-    :armor  0}
+    :armor  2}
    {:name   "Splintmail"
     :cost   53
     :damage 0
-    :armor  0}
+    :armor  3}
    {:name   "Bandedmail"
     :cost   75
     :damage 0
-    :armor  0}
+    :armor  4}
    {:name   "Platemail"
     :cost   102
     :damage 0
-    :armor  0}
-   ])
+    :armor  5}])
 
 (def rings
   [
-   
    { :name   "Damage +1"
     :cost   25
     :damage 1
-    :armor  1 } 
+    :armor  0}
    { :name   "Damage +2"
     :cost   50
     :damage 2
-    :armor  2 } 
+    :armor  0}
    { :name   "Damage +3"
     :cost   100
     :damage 3
-    :armor  3 } 
+    :armor  0}
    { :name   "Defense +1"
     :cost   20
     :damage 0
-    :armor  0 } 
+    :armor  1}
    { :name   "Defense +2"
     :cost   40
     :damage 0
-    :armor  0 } 
+    :armor  2}
    { :name   "Defense +3"
     :cost   80
     :damage 0
-    :armor  0 } 
-   ])
+    :armor  3}])
 
 (def boss
   {:hp     109
@@ -107,31 +104,26 @@
 (defn equipment-sets
   []
   (for [weapon weapons
-        armor  (conj armor {})
-        rings' (->> rings 
-                    (subsets ) 
-                    (filter #(>= 2 (count %))))]
-    (apply merge-with (fnil + {}) (map #(dissoc % :name) (conj rings' weapon armor)))))
+        armor'  (conj armor {})
+        rings' (combinations (conj rings {} {}) 2)]
+    (apply merge-with (fnil + {}) (map #(dissoc % :name) (conj rings' armor' weapon)))))
 
 (defn part01
   [player boss]
-  (->> (equipment-sets)    
-       (filter (fn [comb]
-                 (let [p (merge-with + player comb)]
-                   (fight p boss))))
+  (->> (equipment-sets)
+       (map (partial merge-with + player))
+       (filter #(fight % boss))
        (map :cost)
        (apply min)))
 
 (testing "Part 01"
   (is (= 111 (part01 player boss))))
 
-
 (defn part02
   [player boss]
   (->> (equipment-sets)
-       (filter (fn [comb]
-                 (let [p (merge-with + player comb)]
-                   (not (fight p boss)))))
+       (map (partial merge-with + player))
+       (filter #(not (fight % boss)))
        (map :cost)
        (apply max)))
 
